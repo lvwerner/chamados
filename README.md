@@ -13,8 +13,23 @@ Pré-requisito: JDK 21 com a variável `JAVA_HOME` configurada.
 
 A API sobe em `http://localhost:8080`. O banco é um H2 em memória: os dados são perdidos ao reiniciar.
 
+- Telas: `http://localhost:8080/` (abre a página de login)
 - H2 console: `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:chamadosdb`, usuário `sa`, senha em branco)
 - Testes automatizados: `./mvnw test` (ou `.\mvnw.cmd test`)
+
+## Autenticação e perfis
+
+A API usa Spring Security com HTTP Basic, sem sessão: toda requisição envia usuário e senha no cabeçalho `Authorization`. Sem credenciais a resposta é **401**; com um perfil sem permissão, **403**. As telas e os arquivos estáticos são públicos, mas os dados só saem da API para quem está autenticado.
+
+| Usuário | Senha | Perfil | Pode |
+|---|---|---|---|
+| `usuario` | `usuario123` | USUARIO | Cadastrar e consultar clientes, abrir, editar e acompanhar chamados, comentar, consultar categorias e técnicos |
+| `tecnico` | `tecnico123` | TECNICO | Tudo do usuário + alterar status do chamado |
+| `admin` | `admin123` | ADMIN | Tudo do técnico + atribuir técnico, manter categorias e técnicos e excluir registros |
+
+Os perfis seguem uma hierarquia (ADMIN inclui TECNICO, que inclui USUARIO). As senhas podem ser trocadas pelas variáveis de ambiente `SENHA_USUARIO`, `SENHA_TECNICO` e `SENHA_ADMIN`. `GET /auth/me` devolve o usuário logado e seu perfil.
+
+As telas escondem os botões que o perfil não pode usar, mas a regra vale na API: uma requisição forçada recebe 403.
 
 ## Estrutura
 
@@ -59,6 +74,7 @@ Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** 
 | PATCH | `/chamados/{id}/status` | Alterar status | 200 |
 | POST | `/chamados/{id}/comentarios` | Comentar no chamado | 201 |
 | GET | `/chamados/{id}/comentarios` | Listar comentários | 200 |
+| GET | `/auth/me` | Usuário logado e perfil | 200 |
 
 ### Valores dos enums
 
@@ -91,39 +107,41 @@ Todos os erros seguem o mesmo formato (`ErroResposta`):
 | Status | Quando |
 |---|---|
 | 400 | Bean Validation falhou, JSON malformado, valor de enum desconhecido, parâmetro de URL inválido ou `sort` por campo inexistente |
+| 401 | Credenciais ausentes ou incorretas |
+| 403 | Usuário autenticado sem o perfil exigido pela rota |
 | 404 | Recurso (cliente, categoria, técnico, chamado) não encontrado |
 | 409 | Regra de negócio violada (duplicidade, chamado fechado, exclusão com chamados) |
 
 ## Exemplos de teste (curl)
 
-No Windows, use `curl.exe` no PowerShell ou rode os comandos no Git Bash.
+No Windows, use `curl.exe` no PowerShell ou rode os comandos no Git Bash. O `-u admin:admin123` envia as credenciais (HTTP Basic).
 
 ```bash
 # Cadastros básicos
-curl -i -X POST http://localhost:8080/clientes -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/clientes -H "Content-Type: application/json" \
   -d '{"nome":"Ana Souza","email":"ana@exemplo.com","telefone":"47999999999"}'
 
-curl -i -X POST http://localhost:8080/categorias -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/categorias -H "Content-Type: application/json" \
   -d '{"nome":"Hardware","descricao":"Problemas com equipamentos"}'
 
-curl -i -X POST http://localhost:8080/tecnicos -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/tecnicos -H "Content-Type: application/json" \
   -d '{"nome":"Carlos Lima","email":"carlos@empresa.com","perfil":"TECNICO"}'
 
 # Abrir chamado (nasce ABERTO)
-curl -i -X POST http://localhost:8080/chamados -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/chamados -H "Content-Type: application/json" \
   -d '{"titulo":"Impressora nao liga","descricao":"Setor financeiro","prioridade":"ALTA","clienteId":1,"categoriaId":1}'
 
 # Atribuir técnico e mudar status
-curl -i -X PATCH http://localhost:8080/chamados/1/atribuir -H "Content-Type: application/json" -d '{"tecnicoId":1}'
-curl -i -X PATCH http://localhost:8080/chamados/1/status   -H "Content-Type: application/json" -d '{"status":"EM_ATENDIMENTO"}'
+curl -i -u admin:admin123 -X PATCH http://localhost:8080/chamados/1/atribuir -H "Content-Type: application/json" -d '{"tecnicoId":1}'
+curl -i -u admin:admin123 -X PATCH http://localhost:8080/chamados/1/status   -H "Content-Type: application/json" -d '{"status":"EM_ATENDIMENTO"}'
 
 # Comentar e ver o detalhe com os comentários
-curl -i -X POST http://localhost:8080/chamados/1/comentarios -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/chamados/1/comentarios -H "Content-Type: application/json" \
   -d '{"texto":"Verificando o cabo de energia","autor":"Carlos"}'
-curl -i http://localhost:8080/chamados/1
+curl -i -u admin:admin123 http://localhost:8080/chamados/1
 
 # Fechar (preenche dataFechamento); depois disso qualquer alteração retorna 409
-curl -i -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: application/json" -d '{"status":"FECHADO"}'
+curl -i -u admin:admin123 -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: application/json" -d '{"status":"FECHADO"}'
 ```
 
 ### Consultas com filtros e paginação
@@ -131,13 +149,13 @@ curl -i -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: appli
 Todos os filtros de `GET /chamados` são opcionais e podem ser combinados. Sem `sort`, a ordenação padrão é `dataAbertura` decrescente, 10 itens por página.
 
 ```bash
-curl -i "http://localhost:8080/chamados"                                   # todos, página 0
-curl -i "http://localhost:8080/chamados?status=ABERTO"                     # só abertos
-curl -i "http://localhost:8080/chamados?prioridade=CRITICA"                # só críticos
-curl -i "http://localhost:8080/chamados?status=ABERTO&prioridade=ALTA&clienteId=1"
-curl -i "http://localhost:8080/chamados?page=0&size=5&sort=prioridade,asc" # paginação + ordenação
-curl -i "http://localhost:8080/chamados?sort=titulo,asc&sort=dataAbertura,desc"
-curl -i "http://localhost:8080/clientes/1/chamados?page=0&size=5"          # chamados de um cliente
+curl -i -u admin:admin123 "http://localhost:8080/chamados"                                   # todos, página 0
+curl -i -u admin:admin123 "http://localhost:8080/chamados?status=ABERTO"                     # só abertos
+curl -i -u admin:admin123 "http://localhost:8080/chamados?prioridade=CRITICA"                # só críticos
+curl -i -u admin:admin123 "http://localhost:8080/chamados?status=ABERTO&prioridade=ALTA&clienteId=1"
+curl -i -u admin:admin123 "http://localhost:8080/chamados?page=0&size=5&sort=prioridade,asc" # paginação + ordenação
+curl -i -u admin:admin123 "http://localhost:8080/chamados?sort=titulo,asc&sort=dataAbertura,desc"
+curl -i -u admin:admin123 "http://localhost:8080/clientes/1/chamados?page=0&size=5"          # chamados de um cliente
 ```
 
 Resposta paginada:

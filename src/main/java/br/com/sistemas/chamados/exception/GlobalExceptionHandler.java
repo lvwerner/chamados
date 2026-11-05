@@ -7,6 +7,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -58,6 +60,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResposta> ordenacaoInvalida(InvalidDataAccessApiUsageException ex) {
         return montar(HttpStatus.BAD_REQUEST, "Parâmetro inválido",
             List.of("sort: verifique se o campo de ordenação existe"));
+    }
+
+    /** Credenciais ausentes ou erradas (chega aqui pelo SecurityConfig). */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErroResposta> naoAutenticado(AuthenticationException ex) {
+        return montar(HttpStatus.UNAUTHORIZED, "Autenticação necessária",
+            List.of("Informe usuário e senha válidos"));
+    }
+
+    /** Usuário autenticado, mas sem o papel exigido pela rota. */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErroResposta> semPermissao(AccessDeniedException ex) {
+        return montar(HttpStatus.FORBIDDEN, "Sem permissão para esta operação", List.of());
     }
 
     private ResponseEntity<ErroResposta> montar(HttpStatus status, String erro, List<String> detalhes) {
