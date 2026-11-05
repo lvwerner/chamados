@@ -1,8 +1,11 @@
 package br.com.sistemas.chamados.controller;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,12 +15,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.sistemas.chamados.dto.AlterarStatusRequest;
 import br.com.sistemas.chamados.dto.AtribuirTecnicoRequest;
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
+import br.com.sistemas.chamados.entity.Prioridade;
+import br.com.sistemas.chamados.entity.StatusChamado;
 import br.com.sistemas.chamados.service.ChamadoService;
 import jakarta.validation.Valid;
 
@@ -38,9 +44,17 @@ public class ChamadoController {
         return ResponseEntity.created(URI.create("/chamados/" + criado.id())).body(criado);
     }
 
+    /**
+     * Filtros opcionais + paginação. Ex.:
+     * /chamados?status=ABERTO&prioridade=ALTA&clienteId=1&page=0&size=5&sort=prioridade,asc
+     */
     @GetMapping
-    public List<ChamadoResponse> listar() {
-        return service.listar();
+    public PagedModel<ChamadoResponse> listar(
+        @RequestParam(required = false) StatusChamado status,
+        @RequestParam(required = false) Prioridade prioridade,
+        @RequestParam(required = false) Long clienteId,
+        @PageableDefault(size = 10, sort = "dataAbertura", direction = Sort.Direction.DESC) Pageable pageable) {
+        return new PagedModel<>(service.listar(status, prioridade, clienteId, pageable));
     }
 
     @GetMapping("/{id}")
