@@ -1,7 +1,10 @@
 package br.com.sistemas.chamados.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,6 +15,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 /** ENTITY: núcleo do sistema. Cada chamado pertence a um cliente e a uma categoria. */
@@ -56,6 +61,15 @@ public class Chamado {
     @JoinColumn(name = "tecnico_id")
     private Tecnico tecnico;
 
+    /**
+     * Lado inverso da relação (1 chamado : N comentários). mappedBy aponta para o
+     * atributo "chamado" de Comentario, que é o dono da FK. Excluir o chamado
+     * exclui seus comentários.
+     */
+    @OneToMany(mappedBy = "chamado", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("data asc")
+    private List<Comentario> comentarios = new ArrayList<>();
+
     public Chamado() { }
 
     /** Regra: todo chamado nasce ABERTO e com a data de abertura preenchida. */
@@ -88,4 +102,5 @@ public class Chamado {
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
     public Tecnico getTecnico() { return tecnico; }
     public void setTecnico(Tecnico tecnico) { this.tecnico = tecnico; }
+    public List<Comentario> getComentarios() { return comentarios; }
 }

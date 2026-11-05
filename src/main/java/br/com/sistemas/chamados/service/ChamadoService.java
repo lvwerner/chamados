@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.sistemas.chamados.dto.ChamadoDetalheResponse;
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
 import br.com.sistemas.chamados.entity.Categoria;
@@ -62,8 +63,8 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
-    public ChamadoResponse buscar(Long id) {
-        return ChamadoResponse.de(buscarEntity(id));
+    public ChamadoDetalheResponse buscar(Long id) {
+        return ChamadoDetalheResponse.de(buscarEntity(id));
     }
 
     @Transactional
