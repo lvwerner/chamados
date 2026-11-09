@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · Central de Chamados</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='6' fill='%235fc1cc'/%3E%3Crect x='7' y='9' width='14' height='3' rx='1.5' fill='%2310292f'/%3E%3Crect x='7' y='16' width='9' height='3' rx='1.5' fill='%2310292f'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="entrada">
+    <aside class="entrada__marca">
+      <span class="marca">
+        <span class="marca__simbolo" aria-hidden="true"></span>
+        <span><strong>Chamados</strong><small>Central de suporte</small></span>
+      </span>
+      <p class="entrada__texto">Registre, acompanhe e encerre os chamados dos seus clientes em um só lugar.</p>
+    </aside>
+
+    <main class="entrada__conteudo">
+      <form class="entrada__form" id="form-login" novalidate>
+        <h1>Entrar</h1>
+        <p class="cabecalho__sub">Use o usuário e a senha fornecidos pelo administrador.</p>
+        <p class="alerta" id="expirou" hidden>Sua sessão terminou. Entre novamente para continuar.</p>
+        <p class="erro-geral" id="erro" role="alert" hidden></p>
+        <div class="campo">
+          <label for="usuario">Usuário</label>
+          <input id="usuario" name="usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        </div>
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="botao botao--primario botao--largo" type="submit">Entrar</button>
+
+        <section class="demo" aria-labelledby="demo-titulo">
+          <h2 id="demo-titulo">Usuários de demonstração</h2>
+          <p class="campo__ajuda">Clique em um perfil para preencher os campos.</p>
+          <ul class="demo__lista">
+            <li><button type="button" data-usuario="admin" data-senha="admin123"><strong>admin</strong><span>Administrador · tudo, inclusive atribuir e excluir</span></button></li>
+            <li><button type="button" data-usuario="tecnico" data-senha="tecnico123"><strong>tecnico</strong><span>Técnico · também altera o status</span></button></li>
+            <li><button type="button" data-usuario="usuario" data-senha="usuario123"><strong>usuario</strong><span>Usuário · abre, acompanha e comenta</span></button></li>
+          </ul>
+        </section>
+      </form>
+    </main>
+  </div>
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>

@@ -14,10 +14,13 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import br.com.sistemas.chamados.config.SecurityConfig;
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
 import br.com.sistemas.chamados.entity.Prioridade;
@@ -27,6 +30,8 @@ import br.com.sistemas.chamados.exception.RecursoNaoEncontradoException;
 import br.com.sistemas.chamados.service.ChamadoService;
 
 @WebMvcTest(ChamadoController.class)
+@Import(SecurityConfig.class)
+@WithMockUser(roles = "ADMIN") // as permissões por papel são testadas em SegurancaTest
 class ChamadoControllerTest {
 
     @Autowired

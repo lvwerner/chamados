@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Central de Chamados</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='6' fill='%235fc1cc'/%3E%3Crect x='7' y='9' width='14' height='3' rx='1.5' fill='%2310292f'/%3E%3Crect x='7' y='16' width='9' height='3' rx='1.5' fill='%2310292f'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="lateral">
+      <a class="marca" href="#/chamados">
+        <span class="marca__simbolo" aria-hidden="true"></span>
+        <span><strong>Chamados</strong><small>Central de suporte</small></span>
+      </a>
+      <nav class="menu" aria-label="Principal">
+        <a href="#/chamados" data-secao="chamados">Chamados</a>
+        <a href="#/clientes" data-secao="clientes">Clientes</a>
+        <a href="#/categorias" data-secao="categorias">Categorias</a>
+        <a href="#/tecnicos" data-secao="tecnicos">Técnicos</a>
+      </nav>
+      <div class="usuario" id="usuario"></div>
+      <p class="lateral__rodape">Banco H2 em memória: os dados são apagados quando a aplicação reinicia.</p>
+    </aside>
+    <main id="conteudo" class="conteudo" tabindex="-1">
+      <p class="carregando">Carregando…</p>
+    </main>
+  </div>
+  <div id="avisos" class="avisos" aria-live="polite"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
