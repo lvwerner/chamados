@@ -75,6 +75,8 @@ Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** 
 | POST | `/chamados/{id}/comentarios` | Comentar no chamado | 201 |
 | GET | `/chamados/{id}/comentarios` | Listar comentários | 200 |
 | GET | `/auth/me` | Usuário logado e perfil | 200 |
+| GET | `/notificacoes` | Notificações processadas (ADMIN) | 200 |
+| POST | `/notificacoes/{eventoId}/reprocessar` | Reentregar um evento (ADMIN) | 200 |
 
 ### Valores dos enums
 
@@ -90,6 +92,10 @@ Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** 
 - Ao mudar para `FECHADO`, `dataFechamento` é preenchida.
 - Chamado `FECHADO` não pode ser alterado: PUT, atribuição, mudança de status e novos comentários retornam **409**.
 - Cliente, categoria ou técnico com chamados vinculados não podem ser excluídos (**409**).
+
+### Notificação por evento
+
+Ao abrir um chamado, o `ChamadoService` publica o evento `ChamadoAbertoEvento`, que leva só dados mínimos (sem nome, e-mail, telefone ou descrição). Depois do commit, o `NotificacaoService` entrega o evento a um canal de notificação **simulado**, usando o `eventoId` como chave idempotente: o mesmo evento nunca gera duas notificações. Se o destino falhar, são feitas até 3 tentativas com espera exponencial; se todas falharem, o registro fica como `FALHOU` e o chamado continua salvo. Roteiro da demonstração em [docs/demo-notificacoes.md](docs/demo-notificacoes.md).
 
 ## Erros
 
