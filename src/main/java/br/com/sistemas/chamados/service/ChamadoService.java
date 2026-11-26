@@ -2,6 +2,7 @@ package br.com.sistemas.chamados.service;
 
 import java.time.LocalDateTime;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import br.com.sistemas.chamados.entity.Cliente;
 import br.com.sistemas.chamados.entity.Prioridade;
 import br.com.sistemas.chamados.entity.StatusChamado;
 import br.com.sistemas.chamados.entity.Tecnico;
+import br.com.sistemas.chamados.evento.ChamadoAbertoEvento;
 import br.com.sistemas.chamados.exception.ChamadoFechadoException;
 import br.com.sistemas.chamados.exception.RecursoNaoEncontradoException;
 import br.com.sistemas.chamados.exception.RegraNegocioException;
@@ -32,22 +34,31 @@ public class ChamadoService {
     private final ClienteRepository clienteRepository;
     private final CategoriaRepository categoriaRepository;
     private final TecnicoRepository tecnicoRepository;
+    private final ApplicationEventPublisher eventos;
 
     public ChamadoService(ChamadoRepository repository,
                           ClienteRepository clienteRepository,
                           CategoriaRepository categoriaRepository,
-                          TecnicoRepository tecnicoRepository) {
+                          TecnicoRepository tecnicoRepository,
+                          ApplicationEventPublisher eventos) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
         this.categoriaRepository = categoriaRepository;
         this.tecnicoRepository = tecnicoRepository;
+        this.eventos = eventos;
     }
 
+    /**
+     * Abre o chamado e publica o evento "chamado aberto". O Service não conhece quem
+     * consome o evento (notificação, auditoria...): só avisa que o fato aconteceu.
+     */
     @Transactional
     public ChamadoResponse criar(ChamadoRequest dto) {
         Chamado chamado = new Chamado(dto.titulo(), dto.descricao(), dto.prioridade(),
             buscarCliente(dto.clienteId()), buscarCategoria(dto.categoriaId()));
-        return ChamadoResponse.de(repository.save(chamado));
+        Chamado salvo = repository.save(chamado);
+        eventos.publishEvent(ChamadoAbertoEvento.de(salvo));
+        return ChamadoResponse.de(salvo);
     }
 
     @Transactional(readOnly = true)

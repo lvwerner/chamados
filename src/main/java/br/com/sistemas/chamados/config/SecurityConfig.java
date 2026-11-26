@@ -48,6 +48,7 @@ public class SecurityConfig {
 
                 // A primeira regra que casa com a requisição decide: as específicas vêm antes.
                 .requestMatchers(HttpMethod.PATCH, "/chamados/*/atribuir").hasRole("ADMIN")
+                .requestMatchers("/notificacoes/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/categorias/**", "/tecnicos/**").hasRole("USUARIO")
                 .requestMatchers("/categorias/**", "/tecnicos/**").hasRole("ADMIN")

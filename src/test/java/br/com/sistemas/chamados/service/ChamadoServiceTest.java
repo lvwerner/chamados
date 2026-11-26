@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import br.com.sistemas.chamados.dto.ChamadoResponse;
 import br.com.sistemas.chamados.entity.Categoria;
@@ -40,6 +41,8 @@ class ChamadoServiceTest {
     private CategoriaRepository categoriaRepository;
     @Mock
     private TecnicoRepository tecnicoRepository;
+    @Mock
+    private ApplicationEventPublisher eventos;
 
     @InjectMocks
     private ChamadoService service;
